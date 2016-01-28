@@ -83,9 +83,11 @@
                     gettext('Activating an item in this group will spool the video to the corresponding time point. To skip transcript, go to previous item.'),
                     '">',
                     '<h3 id="transcript-label" class="sr">Video transcript</h3>',
+                    /* jshint maxlen:200 */
                     '<div class="sr-is-focusable" id="transcript-start" tabindex="-1" aria-label="Video transcript start"></div>',
                     '<ol id="transcript-captions" class="subtitles-menu">',
                     '</ol>',
+                    /* jshint maxlen:200 */
                     '<div class="sr-is-focusable" id="transcript-end" tabindex="-1" aria-label="End of video transcript"></div>',
                 '</div>'
             ].join(''),
