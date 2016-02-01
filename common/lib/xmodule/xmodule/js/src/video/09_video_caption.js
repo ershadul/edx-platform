@@ -82,13 +82,15 @@
                     /* jshint maxlen:200 */
                     gettext('Activating an item in this group will spool the video to the corresponding time point. To skip transcript, go to previous item.'),
                     '">',
-                    '<h3 id="transcript-label" class="sr">Video transcript</h3>',
-                    '<div class="sr-is-focusable" id="transcript-start" tabindex="-1" aria-label="',
+                    '<h3 id="transcript-label" class="sr">',
+                    gettext('Video transcript'),
+                    '</h3>',
+                    '<div class="sr-is-focusable" id="transcript-' + state.id + '-start" tabindex="-1" aria-label="',
                     gettext('Video transcript start'),
                     '"></div>',
                     '<ol id="transcript-captions" class="subtitles-menu">',
                     '</ol>',
-                    '<div class="sr-is-focusable" id="transcript-end" tabindex="-1" aria-label="',
+                    '<div class="sr-is-focusable" id="transcript-' + state.id + '-end" tabindex="-1" aria-label="',
                     gettext('End of video transcript'),
                     '"></div>',
                 '</div>'
@@ -560,11 +562,6 @@
                         self.loaded = true;
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        console.log('[Video info]: ERROR while fetching captions.');
-                        console.log(
-                            '[Video info]: STATUS:', textStatus +
-                            ', MESSAGE:', '' + errorThrown
-                        );
                         // If initial list of languages has more than 1 item, check
                         // for availability other transcripts.
                         // If player mode is html5 and there are no initial languages
@@ -573,7 +570,6 @@
                         if (_.keys(state.config.transcriptLanguages).length > 1) {
                             self.fetchAvailableTranslations();
                         } else if (!fetchWithYoutubeId && state.videoType === 'html5') {
-                            console.log('[Video info]: Html5 mode fetching caption with youtubeId.');
                             self.fetchCaption(true);
                         } else {
                             self.hideCaptions(true, false);
