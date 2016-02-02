@@ -43,58 +43,6 @@
         };
 
         VideoCaption.prototype = {
-            langTemplate: [
-                '<div class="grouped-controls">',
-                    '<button class="control toggle-captions" aria-disabled="false">',
-                        '<span class="icon-fallback-img">',
-                            '<span class="icon fa fa-cc" aria-hidden="true"></span>',
-                            '<span class="sr control-text">',
-                                gettext('Turn on closed captioning'),
-                            '</span>',
-                        '</span>',
-                    '</button>',
-                    '<button class="control toggle-transcript" aria-disabled="false">',
-                        '<span class="icon-fallback-img">',
-                            '<span class="icon fa fa-quote-left" aria-hidden="true"></span>',
-                            '<span class="sr control-text">',
-                                gettext('Turn off transcript'),
-                            '</span>',
-                        '</span>',
-                    '</button>',
-                    '<div class="lang menu-container" role="application">',
-                        '<button class="control language-menu" aria-label="',
-                            /* jshint maxlen:250 */
-                            gettext('Language: Press the UP arrow key to enter the language menu, then use UP and DOWN arrow keys to navigate language options. Press ENTER to change to the selected language.'),
-                            '" aria-disabled="false">',
-                            '<span class="icon-fallback-img">',
-                                '<span class="icon fa fa-caret-left" aria-hidden="true"></span>',
-                                '<span class="sr control-text">',
-                                    gettext('Open language menu'),
-                                '</span>',
-                            '</span>',
-                        '</button>',
-                    '</div>',
-                '</div>'
-            ].join(''),
-
-            template: [
-                '<div class="subtitles" role="region" aria-label="',
-                    /* jshint maxlen:200 */
-                    gettext('Activating an item in this group will spool the video to the corresponding time point. To skip transcript, go to previous item.'),
-                    '">',
-                    '<h3 id="transcript-label" class="sr">',
-                    gettext('Video transcript'),
-                    '</h3>',
-                    '<div class="sr-is-focusable" id="transcript-' + state.id + '-start" tabindex="-1" aria-label="',
-                    gettext('Video transcript start'),
-                    '"></div>',
-                    '<ol id="transcript-captions" class="subtitles-menu">',
-                    '</ol>',
-                    '<div class="sr-is-focusable" id="transcript-' + state.id + '-end" tabindex="-1" aria-label="',
-                    gettext('End of video transcript'),
-                    '"></div>',
-                '</div>'
-            ].join(''),
 
             destroy: function () {
                 this.state.el
@@ -126,10 +74,46 @@
             renderElements: function () {
                 var languages = this.state.config.transcriptLanguages;
 
+                var langTemplate = '<div class="grouped-controls">\
+                    <button class="control toggle-captions" aria-disabled="false">\
+                        <span class="icon-fallback-img">\
+                            <span class="icon fa fa-cc" aria-hidden="true"></span>\
+                            <span class="sr control-text">'+gettext('Turn on closed captioning')+'</span>\
+                        </span>\
+                    </button>\
+                    <button class="control toggle-transcript" aria-disabled="false">\
+                        <span class="icon-fallback-img">\
+                            <span class="icon fa fa-quote-left" aria-hidden="true"></span>\
+                            <span class="sr control-text">'+gettext('Turn off transcript')+'</span>\
+                        </span>\
+                    </button>\
+                    <div class="lang menu-container" role="application">\
+                        <button class="control language-menu" aria-label="\
+                            '+gettext('Language: Press the UP arrow key to enter the language menu \
+                            then use UP and DOWN arrow keys to navigate language options. Press ENTER to \
+                            change to the selected language.')+'" aria-disabled="false">\
+                            <span class="icon-fallback-img">\
+                                <span class="icon fa fa-caret-left" aria-hidden="true"></span>\
+                                <span class="sr control-text">'+gettext('Open language menu')+'</span>\
+                            </span>\
+                        </button>\
+                    </div>\
+                </div>',
+
+                var template = '<div class="subtitles" role="region" aria-label="\
+                    '+gettext('Activating an item in this group will spool the video to the corresponding \
+                    time point. To skip transcript, go to previous item.')+'">\
+                    <h3 id="transcript-label" class="sr">'+gettext('Video transcript')+'</h3>\
+                    <div class="sr-is-focusable" id="transcript-'+this.state.id+'-start" tabindex="-1" \
+                    aria-label="'+gettext('Video transcript start')+'"></div>\
+                    <ol id="transcript-captions" class="subtitles-menu"></ol>\
+                    <div class="sr-is-focusable" id="transcript-'+this.state.id+'-end" tabindex="-1" \
+                    aria-label="'+gettext('End of video transcript')+'"></div></div>';
+
                 this.loaded = false;
-                this.subtitlesEl = $(this.template);
+                this.subtitlesEl = $(template);
                 this.subtitlesMenuEl = this.subtitlesEl.find('.subtitles-menu');
-                this.container = $(this.langTemplate);
+                this.container = $(langTemplate);
                 this.captionControlEl = this.container.find('.toggle-captions');
                 this.captionDisplayEl = this.state.el.find('.closed-captions');
                 this.transcriptControlEl = this.container.find('.toggle-transcript');
