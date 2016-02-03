@@ -94,7 +94,7 @@
                         '</button>',
                         '<div class="lang menu-container" role="application">',
                             '<button class="control language-menu" aria-label="',
-                                /* jshint maxlen:250 */
+                                /* jshint maxlen:300 */
                                 gettext('Language: Press the UP arrow key to enter the language menu then use UP and DOWN arrow keys to navigate language options. Press ENTER to change to the selected language.'),
                                 '" aria-disabled="false">',
                                 '<span class="icon-fallback-img">',
@@ -110,18 +110,18 @@
 
                 var template = [
                     '<div class="subtitles" role="region" aria-label="',
-                        /* jshint maxlen:250 */
+                        /* jshint maxlen:300 */
                         gettext('Activating an item in this group will spool the video to the corresponding time point. To skip transcript, go to previous item.'),
                     '">',
                         '<h3 id="transcript-label" class="sr">',
                             gettext('Video transcript'),
                         '</h3>',
-                        /* jshint maxlen:250 */
+                        /* jshint maxlen:300 */
                         '<div class="sr-is-focusable" id="transcript-' + this.state.id + '-start" tabindex="-1" aria-label="',
                             gettext('Video transcript start'),
                         '"></div>',
                         '<ol id="transcript-captions" class="subtitles-menu"></ol>',
-                        /* jshint maxlen:250 */
+                        /* jshint maxlen:300 */
                         '<div class="sr-is-focusable" id="transcript-' + this.state.id + '-end" tabindex="-1" aria-label="',
                         gettext('End of video transcript'),
                         '"></div>',
