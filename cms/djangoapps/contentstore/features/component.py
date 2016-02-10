@@ -55,16 +55,16 @@ def see_a_multi_step_component(step, category):
         if category == 'HTML':
             html_matcher = {
                 'Text': '\n    \n',
-                'Announcement': '<h3 class="hd hd-3">Announcement Date</h3>',
-                'Zooming Image Tool': '<h3 class="hd hd-3">Zooming Image Tool</h3>',
-                'E-text Written in LaTeX': '<h3 class="hd hd-3">Example: E-text page</h3>',
+                'Announcement': '<h3 class="hd hd-2">Announcement Date</h3>',
+                'Zooming Image Tool': '<h3 class="hd hd-2">Zooming Image Tool</h3>',
+                'E-text Written in LaTeX': '<h3 class="hd hd-2">Example: E-text page</h3>',
                 'Raw HTML': '<p>This template is similar to the Text template. The only difference is',
             }
             actual_html = world.css_html(selector, index=idx)
             assert_in(html_matcher[step_hash['Component']].strip(), actual_html.strip())
         else:
             actual_text = world.css_text(selector, index=idx)
-            assert_in(step_hash['Component'], actual_text)
+            assert_in(step_hash['Component'].upper(), actual_text.upper())
 
 
 @step(u'I see a "([^"]*)" Problem component$')
@@ -76,7 +76,7 @@ def see_a_problem_component(step, category):
     problem_css = '.studio-xblock-wrapper .xblock-student_view'
     # This view presents the given problem component in uppercase. Assert that the text matches
     # the component selected
-    assert_true(world.css_contains_text(problem_css, category))
+    assert_true(world.css_contains_text(problem_css, category.upper()))
 
 
 @step(u'I add a "([^"]*)" "([^"]*)" component$')
@@ -150,7 +150,7 @@ def see_component_in_position(step, display_name, index):
     component_css = '.xmodule_CapaModule'
 
     def find_problem(_driver):
-        return world.css_text(component_css, int(index)).startswith(display_name)
+        return world.css_text(component_css, int(index)).startswith(display_name.upper())
 
     world.wait_for(find_problem, timeout_msg='Did not find the duplicated problem')
 

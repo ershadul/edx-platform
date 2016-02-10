@@ -66,7 +66,7 @@ class CoursewareTest(UniqueCourseTest):
         """
         self.courseware_page.visit()
         self.problem_page = ProblemPage(self.browser)
-        self.assertEqual(self.problem_page.problem_name, 'Test Problem 1')
+        self.assertEqual(self.problem_page.problem_name, 'TEST PROBLEM 1')
 
     def _create_breadcrumb(self, index):
         """ Create breadcrumb """
@@ -104,7 +104,7 @@ class CoursewareTest(UniqueCourseTest):
         # Visit courseware as a student.
         self.courseware_page.visit()
         # Problem name should be "Test Problem 2".
-        self.assertEqual(self.problem_page.problem_name, 'Test Problem 2')
+        self.assertEqual(self.problem_page.problem_name, 'TEST PROBLEM 2')
 
     def test_course_tree_breadcrumb(self):
         """
@@ -155,7 +155,7 @@ class ProctoredExamTest(UniqueCourseTest):
         course_fix.add_children(
             XBlockFixtureDesc('chapter', 'Test Section 1').add_children(
                 XBlockFixtureDesc('sequential', 'Test Subsection 1').add_children(
-                    XBlockFixtureDesc('problem', 'Test Problem 1')
+                    XBlockFixtureDesc('problem', 'TEST PROBLEM 1')
                 )
             )
         ).install()

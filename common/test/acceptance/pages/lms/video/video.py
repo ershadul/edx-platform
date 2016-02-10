@@ -42,7 +42,7 @@ CSS_CLASS_NAMES = {
     'video_xmodule': '.xmodule_VideoModule',
     'video_init': '.is-initialized',
     'video_time': '.vidtime',
-    'video_display_name': '.vert .hd',
+    'video_display_name': '.vert h3',
     'captions_lang_list': '.langs-list li',
     'video_speed': '.speeds .value',
     'poster': '.poster',
