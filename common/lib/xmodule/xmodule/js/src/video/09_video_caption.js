@@ -120,13 +120,13 @@
                             gettext('Video transcript'),
                         '</h3>',
                         /* jshint maxlen:300 */
-                        '<div class="sr-is-focusable" id="transcript-' + this.state.id + '-start" ',
+                        '<div class="sr-is-focusable transcript-start" id="transcript-' + this.state.id + '-start" ',
                         'tabindex="-1" aria-label="',
                             gettext('Video transcript start'),
                         '"></div>',
                         '<ol id="transcript-captions" class="subtitles-menu"></ol>',
                         /* jshint maxlen:300 */
-                        '<div class="sr-is-focusable" id="transcript-' + this.state.id + '-end" ',
+                        '<div class="sr-is-focusable transcript-end" id="transcript-' + this.state.id + '-end" ',
                         'tabindex="-1" aria-label="',
                         gettext('End of video transcript'),
                         '"></div>',
