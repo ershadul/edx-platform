@@ -341,13 +341,21 @@ class CMSVideoA11yTest(CMSVideoBaseTest):
             super(CMSVideoA11yTest, self).setUp()
 
     def test_video_player_a11y(self):
-        # Limit the scope of the audit to the video player only.
-        self.outline.a11y_audit.config.set_scope(include=["div.video"])
+        # ensure that the skip-to containers are present and visible
+        # import ipdb; ipdb.set_trace()
+        self.assertIn("sr-is-focusable transcript-start", self.video.captions_container)
+        # self.assertTrue(self.video.is_transcript_skip_visible)
+
+        # limit the scope of the audit to the video player only.
+        self.outline.a11y_audit.config.set_scope(
+            include=["div.video"],
+            exclude=["a.ui-slider-handle"]
+        )
         self.outline.a11y_audit.config.set_rules({
             "ignore": [
                 # 'link-href',  # TODO: AC-223
             ],
         })
 
-        self._create_course_unit()
+        self._create_course_unit(subtitles=True)
         self.outline.a11y_audit.check_for_accessibility_errors()

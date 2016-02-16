@@ -389,21 +389,21 @@ class VideoPage(PageObject):
         subs = self.q(css=captions_selector).html
 
         return ' '.join(subs)
-        
+
     @property
     def captions_container(self):
         """
         Checks for text or elements.
-        
+
         Returns:
             str: Markup
         """
-        
+
         self.wait_for_captions()
-        
+
         captions_selector = self.get_element_selector(CSS_CLASS_NAMES['captions'])
         subs = self.q(css=captions_selector).html
-        
+
         return ' '.join(subs)
 
     @property
@@ -922,12 +922,12 @@ class VideoPage(PageObject):
 
         classes = self.q(css=selector).attrs('class')[0].split()
         return 'active' in classes
-        
+
     @property
     def is_transcript_skip_visible(self):
         """
         Checks if the skip-to containers in transcripts are present and visible.
-        
+
         Returns:
             bool
         """

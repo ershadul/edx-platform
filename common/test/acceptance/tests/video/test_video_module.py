@@ -1189,6 +1189,13 @@ class LMSVideoModuleA11yTest(VideoBaseTest):
     """
     LMS Video Accessibility Test Class
     """
+    
+    def _find_within(self, selector):
+        """
+        Returns a query corresponding to the given CSS selector within the scope
+        of this discussion page
+        """
+        return self.q(css=self + " " + selector)
 
     def setUp(self):
         browser = os.environ.get('SELENIUM_BROWSER', 'firefox')
@@ -1213,17 +1220,20 @@ class LMSVideoModuleA11yTest(VideoBaseTest):
         # go to video
         self.navigate_to_video()
         self.video.show_captions()
-        
+
         # ensure that the skip-to containers are present and visible
         # import ipdb; ipdb.set_trace()
         # self.assertTrue(self.video.is_transcript_skip_visible)
-        # self.video.wait_for(lambda: self.video.is_transcript_skip_visible, 'waiting for transcript skip-to')
-        self.assertIn("sr-is-focusable transcript-start", self.video.captions_container)
+        # self.assertIn("sr-is-focusable transcript-start", self.video.captions_container)
+        # EmptyPromise(
+        #     lambda: self._find_within(".transcript-start").present,
+        #     "Transcript skip links are present"
+        # ).fulfill()
 
         # limit the scope of the audit to the video player only.
         self.video.a11y_audit.config.set_scope(
             include=["div.video"],
-            exclude=[".ui-slider-handle"]
+            exclude=["a.ui-slider-handle"]
         )
         self.video.a11y_audit.config.set_rules({
             "ignore": [
