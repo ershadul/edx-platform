@@ -48,6 +48,10 @@ BUTTON_SELECTORS = {
     'collapse_link': '.collapse-action.collapse-setting',
 }
 
+VIDEO_MENUS = {
+    'transcript-skip': '.sr-is-focusable.transcript-start'
+}
+
 DISPLAY_NAME = "Component Display Name"
 
 DEFAULT_SETTINGS = [

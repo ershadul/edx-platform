@@ -274,6 +274,12 @@ html:not('.afontgarde') .icon-fallback-img {
           display: none;
         }
       }
+      
+      .video-error {
+        padding: ($baseline / 5);
+        background: black;
+        color: white;
+      }
 
       object,
       iframe,

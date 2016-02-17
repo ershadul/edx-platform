@@ -1189,13 +1189,6 @@ class LMSVideoModuleA11yTest(VideoBaseTest):
     """
     LMS Video Accessibility Test Class
     """
-    
-    def _find_within(self, selector):
-        """
-        Returns a query corresponding to the given CSS selector within the scope
-        of this discussion page
-        """
-        return self.q(css=self + " " + selector)
 
     def setUp(self):
         browser = os.environ.get('SELENIUM_BROWSER', 'firefox')
