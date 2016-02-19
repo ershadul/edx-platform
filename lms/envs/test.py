@@ -190,6 +190,7 @@ DATABASES = {
 }
 
 # Disables migrations and creates tables directly from models for speed.
+os.environ['ENABLE_MIGRATIONS'] = '1'
 if not os.getenv('ENABLE_MIGRATIONS'):
     MIGRATION_MODULES = MigrationModules()
 
