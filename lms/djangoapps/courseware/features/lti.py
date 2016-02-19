@@ -319,6 +319,22 @@ def see_elem_text(_step, elem, text):
     assert_true(world.css_has_text(selector_map[elem], text))
 
 
+@step('I see LTI component (.*) with uppercase text "([^"]*)"$')
+def see_elem_text_upper(_step, elem, text):
+    """
+    Uppercasing the text here to match new CSS headers, which are uppercase
+    """
+    selector_map = {
+        'progress': '.problem-progress',
+        'feedback': '.problem-feedback',
+        'module title': '.problem-header',
+        'button': '.link_lti_new_window',
+        'description': '.lti-description'
+    }
+    assert_in(elem, selector_map)
+    assert_true(world.css_has_text(selector_map[elem], text.upper()))
+
+
 @step('I see text "([^"]*)"$')
 def check_progress(_step, text):
     assert world.browser.is_text_present(text)
