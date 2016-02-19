@@ -10,6 +10,7 @@ from .base_studio_test import StudioCourseTest
 from ...pages.lms.create_mode import ModeCreationPage
 from ...pages.studio.settings_certificates import CertificatesPage
 from ...pages.studio.settings_advanced import AdvancedSettingsPage
+from flaky import flaky
 
 
 @attr('shard_8')
@@ -160,6 +161,7 @@ class CertificatesTest(StudioCourseTest):
         self.certificates_page.visit()
         self.assertEqual(len(self.certificates_page.certificates), 0)
 
+    @flaky  # TODO Fix this chrome
     def test_can_create_and_edit_signatories_of_certficate(self):
         """
         Scenario: Ensure that the certificates can be created with signatories and edited correctly.

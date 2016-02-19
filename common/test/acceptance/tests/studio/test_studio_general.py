@@ -20,6 +20,7 @@ from ...pages.studio.settings_graders import GradingPage
 from ...pages.studio.signup import SignupPage
 from ...pages.studio.textbooks import TextbooksPage
 from ...fixtures.course import XBlockFixtureDesc
+from flaky import flaky
 
 from base_studio_test import StudioCourseTest
 
@@ -94,6 +95,7 @@ class CoursePagesTest(StudioCourseTest):
         self.dashboard_page.visit()
         self.assertEqual(self.browser.current_url.strip('/').rsplit('/')[-1], 'home')
 
+    @flaky  # TODO fix this chrome (test_studio_asset.AssetIndexTest.test_page_existence)
     def test_page_existence(self):
         """
         Make sure that all these pages are accessible once you have a course.

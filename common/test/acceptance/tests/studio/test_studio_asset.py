@@ -5,6 +5,7 @@ from ...pages.studio.asset_index import AssetIndexPage
 
 from .base_studio_test import StudioCourseTest
 from ...fixtures.base import StudioApiLoginError
+from flaky import flaky
 
 
 class AssetIndexTest(StudioCourseTest):
@@ -28,12 +29,14 @@ class AssetIndexTest(StudioCourseTest):
         """
         self.course_fixture.add_asset(['image.jpg', 'textbook.pdf'])
 
+    @flaky  # TODO fix this chrome
     def test_page_existence(self):
         """
         Make sure that the page is accessible.
         """
         self.asset_page.visit()
 
+    @flaky  # TODO fix this chrome (test_studio_asset.AssetIndexTest.test_page_existence)
     def test_type_filter_exists(self):
         """
         Make sure type filter is on the page.
@@ -41,6 +44,7 @@ class AssetIndexTest(StudioCourseTest):
         self.asset_page.visit()
         assert self.asset_page.type_filter_on_page() is True
 
+    @flaky  # TODO fix this chrome (test_studio_asset.AssetIndexTest.test_page_existence)
     def test_filter_results(self):
         """
         Make sure type filter actually filters the results.
