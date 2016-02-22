@@ -8,9 +8,8 @@ from __future__ import absolute_import
 
 from importlib import import_module
 import gettext
-import inspect
 import logging
-import os
+from pkg_resources import resource_filename
 import re
 
 from django.conf import settings
@@ -246,6 +245,13 @@ class ModuleI18nService(object):
     i18n service.
 
     """
+    def __init__(self, block=None):
+        """
+        Store a reference to the block currently being serviced by this runtime.  We'll use this
+        reference later on for things like locating the block's translation domain (PO+MO files)
+        """
+        self.block = block
+
     def __getattr__(self, name):
         return getattr(django.utils.translation, name)
 
@@ -262,13 +268,12 @@ class ModuleI18nService(object):
         # The translation workflow should only execute if there's an actual string to look up
         # If gettext processes an empty string the PO file header information will oddly be returned
         translated_string = unicode(string)
-        if translated_string:
+        if translated_string and self.block:
             try:
-                xblock_domain = 'django'
+                xblock_resource = self.block.__class__.unmixed_class.__module__
                 xblock_locale_dir = '/conf/locale'
-                calling_module = inspect.stack()[1]
-                xblock_locale_root = os.path.dirname(calling_module[1])
-                xblock_locale_path = xblock_locale_root + xblock_locale_dir
+                xblock_locale_path = resource_filename(xblock_resource, xblock_locale_dir)
+                xblock_domain = 'django'
                 selected_language = get_language()
                 translator = gettext.translation(
                     xblock_domain,
@@ -278,7 +283,6 @@ class ModuleI18nService(object):
                 _ = translator.ugettext
             except IOError:
                 _ = django.utils.translation.ugettext
-
             translated_string = _(translated_string)  # pylint: disable=translation-of-non-string
         return translated_string
 
