@@ -82,7 +82,7 @@ def initial_setup(server):
                 'browser': 'ALL',
             }
         elif browser_driver == 'firefox':
-            desired_capabilities = {}
+            desired_capabilities = DesiredCapabilities.FIREFOX
         else:
             desired_capabilities = {}
 
@@ -98,11 +98,7 @@ def initial_setup(server):
             # the browser session is invalid, this will
             # raise a WebDriverException
             try:
-                if browser_driver == 'firefox':
-
-                    world.browser = Browser(browser_driver)
-                else:
-                    world.browser = Browser(browser_driver, desired_capabilities=desired_capabilities)
+                world.browser = Browser(browser_driver, desired_capabilities=desired_capabilities)
                 world.browser.driver.set_script_timeout(GLOBAL_SCRIPT_TIMEOUT)
                 world.visit('/')
 
