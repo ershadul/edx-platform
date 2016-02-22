@@ -1,4 +1,3 @@
-# pylint: disable=abstract-method
 """
 Views to support exchange of authentication credentials.
 The following are currently implemented:
@@ -7,6 +6,9 @@ The following are currently implemented:
     2. LoginWithAccessTokenView:
        1st party (open-edx) OAuth 2.0 access token -> session cookie
 """
+
+# pylint: disable=abstract-method
+
 from django.conf import settings
 from django.contrib.auth import login
 import django.contrib.auth as auth
@@ -14,7 +16,10 @@ from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from provider import constants
-from provider.oauth2.views import AccessTokenView as AccessTokenView
+from provider.oauth2.views import AccessTokenView
+from oauth2_provider.oauth2_validators import OAuth2Validator
+from oauth2_provider.views.base import TokenView
+from oauthlib.oauth2.rfc6749.tokens import BearerToken
 from rest_framework import permissions
 from rest_framework.views import APIView
 import social.apps.django_app.utils as social_utils
@@ -23,17 +28,17 @@ from auth_exchange.forms import AccessTokenExchangeForm
 from openedx.core.lib.api.authentication import OAuth2AuthenticationAllowInactiveUser
 
 
-class AccessTokenExchangeView(AccessTokenView):
+class AccessTokenExchangeBase(APIView):
     """
     View for token exchange from 3rd party OAuth access token to 1st party OAuth access token
     """
     @method_decorator(csrf_exempt)
     @method_decorator(social_utils.strategy("social:complete"))
     def dispatch(self, *args, **kwargs):
-        return super(AccessTokenExchangeView, self).dispatch(*args, **kwargs)
+        return super(AccessTokenExchangeBase, self).dispatch(*args, **kwargs)
 
     def get(self, request, _backend):  # pylint: disable=arguments-differ
-        return super(AccessTokenExchangeView, self).get(request)
+        return super(AccessTokenExchangeBase, self).get(request)
 
     def post(self, request, _backend):  # pylint: disable=arguments-differ
         form = AccessTokenExchangeForm(request=request, data=request.POST)
@@ -44,12 +49,32 @@ class AccessTokenExchangeView(AccessTokenView):
         scope = form.cleaned_data["scope"]
         client = form.cleaned_data["client"]
 
+        return self.exchange_access_token(request, user, scope, client)
+
+    def exchange_access_token(self, request, user, scope, client):
+        raise NotImplementedError()
+
+
+class DOPAccessTokenExchangeView(AccessTokenExchangeBase, AccessTokenView):
+
+    def exchange_access_token(self, request, user, scope, client):
         if constants.SINGLE_ACCESS_TOKEN:
             edx_access_token = self.get_access_token(request, user, scope, client)
         else:
             edx_access_token = self.create_access_token(request, user, scope, client)
-
         return self.access_token_response(edx_access_token)
+
+
+class DOTAccessTokenExchangeView(AccessTokenExchangeBase, TokenView):
+    def exchange_access_token(self, request, user, scope, client):
+        _days = 24 * 60 * 60
+        TODO_import_this = 30 * _days
+        token_generator = BearerToken(
+            expires_in=TODO_import_this,
+            request_validator=OAuth2Validator()
+        )
+        access_token = token_generator.create_token(request, refresh_token=True)
+        return access_token
 
 
 class LoginWithAccessTokenView(APIView):

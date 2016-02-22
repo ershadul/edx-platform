@@ -7,8 +7,9 @@ from __future__ import unicode_literals
 
 from django.views.generic import View
 from edx_oauth2_provider import views as dop_views  # django-oauth2-provider views
-from oauth2_provider import views as dot_views  # django-oauth-toolkit views
-# from provider.oauth2.views import AccessTokenDetailView
+from oauth2_provider import models as dot_models, views as dot_views  # django-oauth-toolkit
+
+from auth_exchange import views as auth_exchange_views
 
 DOT_BACKEND = object()
 DOP_BACKEND = object()
@@ -28,7 +29,8 @@ class _DispatchingView(View):
         but this mechanism can be overridden as necessary for different views.
         """
 
-        if request.POST['client_id'] in {'android', 'ios'}:
+        client_id = request.POST['client_id']
+        if dot_models.Application.filter(client_id=client_id).exists():
             return DOT_BACKEND
         else:
             return DOP_BACKEND
@@ -67,3 +69,17 @@ class AuthorizationView(_DispatchingView):
     """
     dop_view = dop_views.Capture
     dot_view = dot_views.AuthorizationView
+
+
+class AccessTokenExchangeView(_DispatchingView):
+    """
+    Exchange a third party auth token
+    """
+
+    dop_view = auth_exchange_views.DOPAccessTokenExchangeView
+    dot_view = auth_exchange_views.DOTAccessTokenExchangeView
+
+    def select_backend(self, request):
+        return DOP_BACKEND
+
+
