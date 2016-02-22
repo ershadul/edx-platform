@@ -48,7 +48,10 @@ class CourseUpdatesList(generics.ListAPIView):
 
         for item in updates_to_show:
             content = item['content']
-            content = course_updates_module.system.replace_urls(content)
+            frag = Fragment(content=unicode(content))
+            for wrapper in course_updates_module.system.wrappers:
+                frag = wrapper(block=course_updates_module, view=None, frag=frag, context=None)
+            content = frag.content
             item['content'] = make_static_urls_absolute(request, content)
 
         return Response(updates_to_show)
@@ -81,7 +84,7 @@ class CourseHandoutsList(generics.ListAPIView):
                 handouts_html = None
             else:
                 handouts_html = course_handouts_module.data
-                frag = Fragment(content=handouts_html)
+                frag = Fragment(content=unicode(handouts_html))
                 for wrapper in course_handouts_module.system.wrappers:
                     frag = wrapper(block=course_handouts_module, view=None, frag=frag, context=None)
                 handouts_html = frag.content
