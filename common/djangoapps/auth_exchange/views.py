@@ -15,12 +15,14 @@ import django.contrib.auth as auth
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from edx_oauth2_provider.constants import SCOPE_VALUE_DICT
 from provider import constants
 from provider.oauth2.views import AccessTokenView
 from oauth2_provider.oauth2_validators import OAuth2Validator
 from oauth2_provider.views.base import TokenView
 from oauthlib.oauth2.rfc6749.tokens import BearerToken
 from rest_framework import permissions
+from rest_framework.response import Response
 from rest_framework.views import APIView
 import social.apps.django_app.utils as social_utils
 
@@ -66,15 +68,34 @@ class DOPAccessTokenExchangeView(AccessTokenExchangeBase, AccessTokenView):
 
 
 class DOTAccessTokenExchangeView(AccessTokenExchangeBase, TokenView):
+    def get(self, request, _backend):
+        return Response(status=400, data={
+            'error': 'invalid_request',
+            'error_description': 'Only POST requests allowed.',
+        })
+
+    def populate_request(self, request, user, scope, client):
+        request.user = user
+        if scope is not None:
+            request.scopes = [SCOPE_VALUE_DICT[scope]]
+        else:
+            request.scopes = []
+        request.client = client
+        request.state = None
+        request.refresh_token = None
+        request.extra_credentials = None
+        request.grant_type = 'auth-exchange'
+
     def exchange_access_token(self, request, user, scope, client):
         _days = 24 * 60 * 60
         TODO_import_this = 30 * _days
+        self.populate_request(request, user, scope, client)
         token_generator = BearerToken(
             expires_in=TODO_import_this,
             request_validator=OAuth2Validator()
         )
         access_token = token_generator.create_token(request, refresh_token=True)
-        return access_token
+        return Response(data=access_token)
 
 
 class LoginWithAccessTokenView(APIView):
@@ -93,6 +114,12 @@ class LoginWithAccessTokenView(APIView):
             backend = auth.load_backend(backend_path)
             if backend.get_user(user.id):
                 return backend_path
+
+    def error_response(self, form_errors):
+        """
+        Return an error response consisting of the errors in the form
+        """
+        return Response(status=400, data=form_errors)
 
     @method_decorator(csrf_exempt)
     def post(self, request):

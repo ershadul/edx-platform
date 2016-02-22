@@ -7,6 +7,7 @@ import json
 import mock
 import unittest
 
+import ddt
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -18,8 +19,10 @@ from provider.oauth2.models import AccessToken, Client
 from auth_exchange.tests.utils import AccessTokenExchangeTestMixin
 from student.tests.factories import UserFactory
 from third_party_auth.tests.utils import ThirdPartyOAuthTestMixinFacebook, ThirdPartyOAuthTestMixinGoogle
+from .dot_mixin import DOTTestMixin
 
 
+@ddt.ddt
 class AccessTokenExchangeViewTest(AccessTokenExchangeTestMixin):
     """
     Mixin that defines test cases for AccessTokenExchangeView
@@ -38,42 +41,71 @@ class AccessTokenExchangeViewTest(AccessTokenExchangeTestMixin):
         )
         self.assertNotIn("partial_pipeline", self.client.session)
 
+    def _get_access_token(self, token):
+        """
+        Return the access token with the given token string
+        """
+        return AccessToken.objects.get(token=token)
+
+    @property
+    def _expected_keys(self):
+        """
+        List of attributes we expect returned by a successful token request
+        """
+        return {"access_token", "token_type", "expires_in", "scope"}
+
+    def _get_expected_scopes(self, expected_scopes):
+        """
+        Return the list of expected scopes, in serialized form (a space-separated string)
+        """
+        return " ".join(expected_scopes)
+
+    def _get_token_client(self, token):
+        """
+        Return the oauth client associated with the given token
+        """
+        return token.client
+
+    def _get_token_scope_names(self, token):
+        """
+        Return the scopes associated with the given token
+        """
+        return scope.to_names(token.scope)
+
     def _assert_success(self, data, expected_scopes):
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/json")
         content = json.loads(response.content)
-        self.assertEqual(set(content.keys()), {"access_token", "token_type", "expires_in", "scope"})
+        self.assertEqual(set(content.keys()), self._expected_keys)
         self.assertEqual(content["token_type"], "Bearer")
         self.assertLessEqual(
             timedelta(seconds=int(content["expires_in"])),
             provider.constants.EXPIRE_DELTA_PUBLIC
         )
-        self.assertEqual(content["scope"], " ".join(expected_scopes))
-        token = AccessToken.objects.get(token=content["access_token"])
+        self.assertEqual(content["scope"], self._get_expected_scopes(expected_scopes))
+        token = self._get_access_token(token=content["access_token"])
         self.assertEqual(token.user, self.user)
-        self.assertEqual(token.client, self.oauth_client)
-        self.assertEqual(scope.to_names(token.scope), expected_scopes)
+        self.assertEqual(self._get_token_client(token), self.oauth_client)
+        self.assertEqual(self._get_token_scope_names(token), expected_scopes)
 
     def test_single_access_token(self):
         def extract_token(response):
             """
             Returns the access token from the response payload.
             """
+            print response.content
             return json.loads(response.content)["access_token"]
 
         self._setup_provider_response(success=True)
         for single_access_token in [True, False]:
-            with mock.patch(
-                "auth_exchange.views.constants.SINGLE_ACCESS_TOKEN",
-                single_access_token
-            ):
+            with mock.patch("auth_exchange.views.constants.SINGLE_ACCESS_TOKEN", single_access_token):
                 first_response = self.client.post(self.url, self.data)
                 second_response = self.client.post(self.url, self.data)
-                self.assertEqual(
-                    extract_token(first_response) == extract_token(second_response),
-                    single_access_token
-                )
+            self.assertEqual(
+                extract_token(first_response) == extract_token(second_response),
+                single_access_token
+            )
 
     def test_get_method(self):
         response = self.client.get(self.url, self.data)
@@ -105,6 +137,10 @@ class AccessTokenExchangeViewTestFacebook(
     """
     pass
 
+class DOTAccessTokenExchangeViewTestFacebook(DOTTestMixin, AccessTokenExchangeViewTestFacebook):
+    """
+    Rerun AccessTokenExchangeViewTestFacebook tests against DOT backend
+    """
 
 # This is necessary because cms does not implement third party auth
 @unittest.skipUnless(settings.FEATURES.get("ENABLE_THIRD_PARTY_AUTH"), "third party auth not enabled")

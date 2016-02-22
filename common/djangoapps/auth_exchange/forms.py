@@ -8,6 +8,7 @@ import provider.constants
 from provider.forms import OAuthForm, OAuthValidationError
 from provider.oauth2.forms import ScopeChoiceField, ScopeMixin
 from provider.oauth2.models import Client
+from oauth2_provider.models import Application
 from requests import HTTPError
 from social.backends import oauth as social_oauth
 from social.exceptions import AuthException
@@ -70,13 +71,16 @@ class AccessTokenExchangeForm(ScopeMixin, OAuthForm):
         try:
             client = Client.objects.get(client_id=client_id)
         except Client.DoesNotExist:
-            raise OAuthValidationError(
-                {
-                    "error": "invalid_client",
-                    "error_description": "{} is not a valid client_id".format(client_id),
-                }
-            )
-        if client.client_type != provider.constants.PUBLIC:
+            try:
+                client = Application.objects.get(client_id=client_id)
+            except Application.DoesNotExist:
+                raise OAuthValidationError(
+                    {
+                        "error": "invalid_client",
+                        "error_description": "{} is not a valid client_id".format(client_id),
+                    }
+                )
+        if client.client_type not in [provider.constants.PUBLIC, 'public']:
             raise OAuthValidationError(
                 {
                     # invalid_client isn't really the right code, but this mirrors
