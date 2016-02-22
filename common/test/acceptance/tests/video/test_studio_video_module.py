@@ -344,8 +344,6 @@ class CMSVideoA11yTest(CMSVideoBaseTest):
         self._create_course_unit(subtitles=True)
         self.video.wait_for_captions()
         self.assertTrue(self.video.is_captions_visible())
-        self.assertIn("sr-is-focusable transcript-start", self.video.captions_container)
-        # self.assertTrue(self.video.is_transcript_skip_visible)
 
         # limit the scope of the audit to the video player only.
         self.outline.a11y_audit.config.set_scope(
