@@ -1194,7 +1194,7 @@ class DragAndDropTest(VideoBaseTest):
     """
     def setUp(self):
         super(DragAndDropTest, self).setUp()
-            
+
     def test_if_captions_are_draggable(self):
         """
         Loads transcripts so that closed-captioning is available.
@@ -1202,20 +1202,20 @@ class DragAndDropTest(VideoBaseTest):
         """
         self.assets.append('subs_3_yD_cEKoCk.srt.sjson')
         data = {'sub': '3_yD_cEKoCk'}
-        
+
         self.metadata = self.metadata_for_mode('html5', additional_data=data)
-        
+
         self.navigate_to_video()
-        
+
         self.video.show_closed_captions()
-        
+
         self.video.wait_for_closed_captions()
-        
+
         self.assertTrue(self.video.is_closed_captions_visible)
-        
+
         captionsContainer = '.closed-captions'
         captions = self.video.q(css=captionsContainer).results[0]
-        
+
         action = ActionChains(self.browser)
         action.drag_and_drop_by_offset(captions, 15, 185).perform()
 
