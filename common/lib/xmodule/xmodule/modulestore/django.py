@@ -245,7 +245,7 @@ class ModuleI18nService(object):
     i18n service.
 
     """
-    def __init__(self, block):
+    def __init__(self, block=None):
         """
         Store a reference to the block currently being serviced by this runtime.  We'll use this
         reference later on for things like locating the block's translation domain (PO+MO files)
@@ -270,7 +270,7 @@ class ModuleI18nService(object):
         translated_string = unicode(string)
         if translated_string and self.block:
             try:
-                xblock_resource = self.block.__class__.unmixed_class.__module__
+                xblock_resource = self.block.unmixed_class.__module__
                 xblock_locale_dir = '/conf/locale'
                 xblock_locale_path = resource_filename(xblock_resource, xblock_locale_dir)
                 xblock_domain = 'django'

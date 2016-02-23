@@ -4,6 +4,62 @@ from django.contrib.auth.models import User
 
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from contentstore.tests.utils import AjaxEnabledTestClient
+from xmodule.modulestore.django import ModuleI18nService
+from django.utils import translation
+import mock
+
+
+class TestModuleI18nService(ModuleStoreTestCase):
+    """ Test ModuleI18nService """
+
+    xblock_name = 'dummy_block'
+
+    def setUp(self):
+        """ Setting up tests """
+        super(TestModuleI18nService, self).setUp()
+        self.xblock_mock = mock.Mock()
+        self.xblock_mock.unmixed_class.__name__ = self.xblock_name
+        self.i18n_service = ModuleI18nService(self.xblock_mock)
+
+    def test_service_translation_works(self):
+        """
+        Test service use the django translation
+        """
+        language = 'dummy language'
+
+        def wrap_with_test(func):
+            """
+            A decorator function that just adds 'TEST ' to the front of all strings
+            """
+            def new_func(*args, **kwargs):
+                """ custom function """
+                output = func(*args, **kwargs)
+                return "TEST " + output
+            return new_func
+
+        old_lang = translation.get_language()
+
+        # Activate french, so that if the fr files haven't been loaded, they will be loaded now.
+        translation.activate("fr")
+        french_translation = translation.trans_real._active.value  # pylint: disable=protected-access
+
+        # wrap the ugettext and ungettext functions so that 'TEST ' will prefix each translation
+        french_translation.ugettext = wrap_with_test(french_translation.ugettext)
+        french_translation.ungettext = wrap_with_test(french_translation.ungettext)
+        self.assertEqual(self.i18n_service.ugettext(language), 'TEST dummy language')
+
+        # Turn back on our old translations
+        translation.activate(old_lang)
+        del old_lang
+        self.assertEqual(self.i18n_service.ugettext(language), 'dummy language')
+
+    @mock.patch('django.utils.translation.ugettext', mock.Mock(return_value='TEST LANGUAGE'))
+    def test_service_not_translate_text(self):
+        """
+        Test: Not translate the text if no block is associated or string is empty
+        """
+        self.assertEqual(ModuleI18nService(block=None).ugettext('dummy language'), 'dummy language')
+        self.assertEqual(self.i18n_service.ugettext(''), '')
 
 
 class InternationalizationTest(ModuleStoreTestCase):
