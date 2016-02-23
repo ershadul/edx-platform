@@ -104,18 +104,8 @@ class TestAuthorizationView(TestCase):
     def setUp(self):
         super(TestAuthorizationView, self).setUp()
         self.user = UserFactory()
-        self.dot_app = Application.objects.create(
-            name='Test Application',
-            client_type=Application.CLIENT_CONFIDENTIAL,
-            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
-            user=self.user,  # pylint: disable=no-member
-            redirect_uris='/',
-        )
-        self.dop_client = Client.objects.create(
-            user=self.user,  # pylint: disable=no-member
-            redirect_uri='http://example.edx/redirect',
-            client_type=constants.CONFIDENTIAL,
-        )
+        self.dot_app = self.dot_adapter.create_confidential_client(user=self.user, client_id='dot-app-client-id')
+        self.dop_client = self.dop_adapter.create_confidential_client(user=self.user, client_id='dop-app-client-id')
 
     @ddt.data(
         (dop_adapter, 'dop_client'),
@@ -147,6 +137,7 @@ class TestAuthorizationView(TestCase):
                 'state': 'random_state_string',
                 'redirect_uri': 'http://example.edx/redirect',
             }, follow=True)
+            print response
         self.assertEqual(response.status_code, 200)
 
         # check form is in context and form params are valid

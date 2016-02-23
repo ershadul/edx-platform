@@ -16,12 +16,22 @@ class DOTAdapter(object):
     def patch_view_backend(self, view):
         return patch.object(view, 'select_backend', return_value=self.backend)
 
+    def create_confidential_client(self, user, client_id=None):
+        return models.Application.objects.create(
+            name='Test Auth Code Application',
+            client_type=models.Application.CLIENT_CONFIDENTIAL,
+            client_id=client_id,
+            authorization_grant_type=models.Application.GRANT_AUTHORIZATION_CODE,
+            user=user,  # pylint: disable=no-member
+            redirect_uris='http://example.edx/redirect',
+        )
     def create_public_client(self, user, client_id=None):
         return models.Application.objects.create(
-            user=user,
+            name='Test Password Application',
             client_id=client_id,
-            redirect_uris='/',
             authorization_grant_type=models.Application.GRANT_PASSWORD,
+            redirect_uris='http://example.edx/redirect',
+            user=user,
         )
 
     def create_token(self, request, user, scopes, client):

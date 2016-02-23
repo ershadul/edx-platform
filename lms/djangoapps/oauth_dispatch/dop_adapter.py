@@ -17,11 +17,18 @@ class DOPAdapter(object):
     def patch_view_backend(self, view):
         return patch.object(view, 'select_backend', return_value=self.backend)
 
+    def create_confidential_client(self, user, client_id=None):
+        return models.Client.objects.create(
+            user=user,
+            client_id=client_id,
+            redirect_uri='http://example.edx/redirect',
+            client_type=constants.CONFIDENTIAL,
+        )
     def create_public_client(self, user, client_id=None):
         return models.Client.objects.create(
             user=user,
             client_id=client_id,
-            redirect_uri='/',
+            redirect_uri='http://example.edx/redirect',
             client_type=constants.PUBLIC
         )
 
