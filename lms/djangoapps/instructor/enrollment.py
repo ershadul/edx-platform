@@ -21,6 +21,7 @@ from lang_pref import LANGUAGE_KEY
 from submissions import api as sub_api  # installed from the edx-submissions repository
 from student.models import anonymous_id_for_user
 from openedx.core.djangoapps.user_api.models import UserPreference
+from instructor.utils import get_module_for_student
 
 from microsite_configuration import microsite
 from xmodule.modulestore.django import modulestore
@@ -221,7 +222,8 @@ def reset_student_attempts(course_id, student, module_state_key, delete_module=F
     """
     try:
         # A block may have children. Clear state on children first.
-        block = modulestore().get_item(module_state_key)
+        # TODO: get the current (staff) user, bind to them instead of student (the user being reset)
+        block = get_module_for_student(student, module_state_key)
         if block.has_children:
             for child in block.children:
                 try:
