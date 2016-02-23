@@ -11,8 +11,8 @@ from oauth2_provider import models as dot_models, views as dot_views  # django-o
 
 from auth_exchange import views as auth_exchange_views
 
-DOT_BACKEND = object()
-DOP_BACKEND = object()
+from .dop_adapter import DOPAdapter
+from .dot_adapter import DOTAdapter
 
 
 class _DispatchingView(View):
@@ -20,6 +20,9 @@ class _DispatchingView(View):
     Base class that route views to the appropriate provider view.
     """
     # pylint: disable=no-member
+
+    dot_adapter = DOTAdapter()
+    dop_adapter = DOPAdapter()
 
     def select_backend(self, request):
         """
@@ -31,17 +34,17 @@ class _DispatchingView(View):
 
         client_id = request.POST['client_id']
         if dot_models.Application.filter(client_id=client_id).exists():
-            return DOT_BACKEND
+            return self.dot_adapter.backend
         else:
-            return DOP_BACKEND
+            return self.dop_adapter.backend
 
     def get_view_for_backend(self, backend):
         """
         Return the appropriate view from the requested backend.
         """
-        if backend == DOT_BACKEND:
+        if backend == self.dot_adapter.backend:
             return self.dot_view.as_view()
-        elif backend == DOP_BACKEND:
+        elif backend == self.dop_adapter.backend:
             return self.dop_view.as_view()
         else:
             raise KeyError('Failed to dispatch view. Invalid backend {}'.format(backend))
@@ -80,6 +83,4 @@ class AccessTokenExchangeView(_DispatchingView):
     dot_view = auth_exchange_views.DOTAccessTokenExchangeView
 
     def select_backend(self, request):
-        return DOP_BACKEND
-
-
+        return self.dop_adapter.backend

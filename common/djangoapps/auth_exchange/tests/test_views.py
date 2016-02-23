@@ -13,13 +13,12 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 import httpretty
 import provider.constants
-from provider import scope
 from provider.oauth2.models import AccessToken, Client
 
-from auth_exchange.tests.utils import AccessTokenExchangeTestMixin
 from student.tests.factories import UserFactory
 from third_party_auth.tests.utils import ThirdPartyOAuthTestMixinFacebook, ThirdPartyOAuthTestMixinGoogle
-from .dot_mixin import DOTTestMixin
+from . import mixins
+from .utils import AccessTokenExchangeTestMixin
 
 
 @ddt.ddt
@@ -41,60 +40,28 @@ class AccessTokenExchangeViewTest(AccessTokenExchangeTestMixin):
         )
         self.assertNotIn("partial_pipeline", self.client.session)
 
-    def _get_access_token(self, token):
-        """
-        Return the access token with the given token string
-        """
-        return AccessToken.objects.get(token=token)
-
-    @property
-    def _expected_keys(self):
-        """
-        List of attributes we expect returned by a successful token request
-        """
-        return {"access_token", "token_type", "expires_in", "scope"}
-
-    def _get_expected_scopes(self, expected_scopes):
-        """
-        Return the list of expected scopes, in serialized form (a space-separated string)
-        """
-        return " ".join(expected_scopes)
-
-    def _get_token_client(self, token):
-        """
-        Return the oauth client associated with the given token
-        """
-        return token.client
-
-    def _get_token_scope_names(self, token):
-        """
-        Return the scopes associated with the given token
-        """
-        return scope.to_names(token.scope)
-
     def _assert_success(self, data, expected_scopes):
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/json")
         content = json.loads(response.content)
-        self.assertEqual(set(content.keys()), self._expected_keys)
+        self.assertEqual(set(content.keys()), self.oauth2_adapter.get_token_response_keys)
         self.assertEqual(content["token_type"], "Bearer")
         self.assertLessEqual(
             timedelta(seconds=int(content["expires_in"])),
             provider.constants.EXPIRE_DELTA_PUBLIC
         )
-        self.assertEqual(content["scope"], self._get_expected_scopes(expected_scopes))
-        token = self._get_access_token(token=content["access_token"])
+        self.assertEqual(content["scope"], self.oauth2_adapter.normalize_scopes(expected_scopes))
+        token = self.oauth2_adapter.get_access_token(token_string=content["access_token"])
         self.assertEqual(token.user, self.user)
-        self.assertEqual(self._get_token_client(token), self.oauth_client)
-        self.assertEqual(self._get_token_scope_names(token), expected_scopes)
+        self.assertEqual(self.oauth2_adapter.get_client_for_token(token), self.oauth_client)
+        self.assertEqual(self.oauth2_adapter.get_token_scope_names(token), expected_scopes)
 
     def test_single_access_token(self):
         def extract_token(response):
             """
             Returns the access token from the response payload.
             """
-            print response.content
             return json.loads(response.content)["access_token"]
 
         self._setup_provider_response(success=True)
@@ -128,6 +95,7 @@ class AccessTokenExchangeViewTest(AccessTokenExchangeTestMixin):
 @unittest.skipUnless(settings.FEATURES.get("ENABLE_THIRD_PARTY_AUTH"), "third party auth not enabled")
 @httpretty.activate
 class AccessTokenExchangeViewTestFacebook(
+        mixins.DOPAdapterMixin,
         AccessTokenExchangeViewTest,
         ThirdPartyOAuthTestMixinFacebook,
         TestCase
@@ -137,7 +105,7 @@ class AccessTokenExchangeViewTestFacebook(
     """
     pass
 
-class DOTAccessTokenExchangeViewTestFacebook(DOTTestMixin, AccessTokenExchangeViewTestFacebook):
+class DOTAccessTokenExchangeViewTestFacebook(mixins.DOTAdapterMixin, AccessTokenExchangeViewTestFacebook):
     """
     Rerun AccessTokenExchangeViewTestFacebook tests against DOT backend
     """

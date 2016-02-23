@@ -12,6 +12,8 @@ from provider import constants
 from provider.oauth2.models import Client
 from student.tests.factories import UserFactory
 
+from ..dop_adapter import DOPAdapter
+from ..dot_adapter import DOTAdapter
 from .. import views
 
 
@@ -21,20 +23,14 @@ class TestAccessTokenView(TestCase):
     Test class for AccessTokenView
     """
 
+    dop_adapter = DOPAdapter()
+    dot_adapter = DOTAdapter()
+
     def setUp(self):
         super(TestAccessTokenView, self).setUp()
         self.user = UserFactory()
-        self.dot_app = Application.objects.create(
-            user_id=self.user.id,  # pylint: disable=no-member
-            redirect_uris='/',
-            client_type=Application.CLIENT_PUBLIC,
-            authorization_grant_type=Application.GRANT_PASSWORD,
-        )
-        self.dop_client = Client.objects.create(
-            user_id=self.user.id,  # pylint: disable=no-member
-            redirect_uri='/',
-            client_type=constants.PUBLIC,
-        )
+        self.dot_app = self.dot_adapter.create_public_client(user=self.user, client_id='dot-app-client-id')
+        self.dop_client = self.dop_adapter.create_public_client(user=self.user, client_id='dop-app-client-id')
 
     def test_dot_application_gets_client_id(self):
         self.assertGreater(len(self.dot_app.client_id), 0)
@@ -43,11 +39,11 @@ class TestAccessTokenView(TestCase):
         self.assertGreater(len(self.dop_client.client_id), 0)
 
     @ddt.data(
-        (views.DOT_BACKEND, 'dot_app'),
-        (views.DOP_BACKEND, 'dop_client'),
+        (DOTAdapter(), 'dot_app'),
+        (DOPAdapter(), 'dop_client'),
     )
     @ddt.unpack
-    def test_access_token_fields(self, backend, client_attr):
+    def test_access_token_fields(self, adapter, client_attr):
         client = getattr(self, client_attr)
         token_view = views.AccessTokenView.as_view()
         reqfac = RequestFactory()
@@ -57,7 +53,7 @@ class TestAccessTokenView(TestCase):
             'username': self.user.username,
             'password': 'test',
         })
-        with patch.object(views.AccessTokenView, 'select_backend', return_value=backend):
+        with patch.object(views.AccessTokenView, 'select_backend', return_value=adapter.backend):
             response = token_view(request)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
@@ -75,7 +71,7 @@ class TestAccessTokenView(TestCase):
             'username': self.user.username,
             'password': 'test',
         })
-        with patch.object(views.AccessTokenView, 'select_backend', return_value=views.DOT_BACKEND):
+        with DOTAdapter().patch_view_backend(views.AccessTokenView):
             response = token_view(request)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
@@ -90,7 +86,7 @@ class TestAccessTokenView(TestCase):
             'username': self.user.username,
             'password': 'test',
         })
-        with patch.object(views.AccessTokenView, 'select_backend', return_value=views.DOP_BACKEND):
+        with self.dop_adapter.patch_view_backend(views.AccessTokenView):
             response = token_view(request)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
@@ -103,6 +99,8 @@ class TestAuthorizationView(TestCase):
     Test class for AccessTokenView
     """
 
+    dop_adapter = DOPAdapter()
+    dot_adapter = DOTAdapter()
     def setUp(self):
         super(TestAuthorizationView, self).setUp()
         self.user = UserFactory()
@@ -120,15 +118,14 @@ class TestAuthorizationView(TestCase):
         )
 
     @ddt.data(
-        (views.DOT_BACKEND, 'dot_app'),
-        (views.DOP_BACKEND, 'dop_client'),
+        (dop_adapter, 'dop_client'),
+        (dot_adapter, 'dot_app'),
     )
     @ddt.unpack
-    def test_authorization_view(self, backend, client_attr):
+    def test_authorization_view(self, adapter, client_attr):
         client = getattr(self, client_attr)
-        reqfac = RequestFactory()
         self.client.login(username=self.user.username, password='test')
-        with patch.object(views.AuthorizationView, 'select_backend', return_value=backend):
+        with adapter.patch_view_backend(views.AuthorizationView):
             response = self.client.post('/oauth2/authorize/', {
                 'client_id': client.client_id,
                 'response_type': 'code',
@@ -143,7 +140,7 @@ class TestAuthorizationView(TestCase):
 
     def test_dot_authorization_view(self):
         self.client.login(username=self.user.username, password='test')
-        with patch.object(views.AuthorizationView, 'select_backend', return_value=views.DOT_BACKEND):
+        with self.dot_adapter.patch_view_backend(views.AuthorizationView):
             response = self.client.post('/oauth2/authorize/', {
                 'client_id': self.dot_app.client_id,
                 'response_type': 'code',
@@ -164,7 +161,7 @@ class TestAuthorizationView(TestCase):
 
     def test_dop_authorization_view(self):
         self.client.login(username=self.user.username, password='test')
-        with patch.object(views.AuthorizationView, 'select_backend', return_value=views.DOP_BACKEND):
+        with self.dop_adapter.patch_view_backend(views.AuthorizationView):
             response = self.client.post('/oauth2/authorize/', {
                 'client_id': self.dop_client.client_id,
                 'response_type': 'code',
