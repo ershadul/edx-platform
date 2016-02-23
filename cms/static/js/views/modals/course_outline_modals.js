@@ -737,11 +737,10 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
             if (xblockInfo.isChapter()) {
                 editors = [ReleaseDateEditor, StaffLockEditor];
             } else if (xblockInfo.isSequential()) {
-                editors = [ReleaseDateEditor, GradingEditor, DueDateEditor, StaffLockEditor]
                 tabs.push({
                     name: 'basic',
                     displayName: gettext('Basic'),
-                    editors: editors
+                    editors: [ReleaseDateEditor, GradingEditor, DueDateEditor, StaffLockEditor]
                 });
 
                 if (options.enable_proctored_exams || options.enable_timed_exams) {
@@ -771,7 +770,7 @@ define(['jquery', 'backbone', 'underscore', 'gettext', 'js/views/baseview',
             if (course.get('self_paced')) {
                 editors = _.without(editors, ReleaseDateEditor, DueDateEditor);
                 _.each(tabs, function (tab) {
-                    tab.editors = _.without(editors, ReleaseDateEditor, DueDateEditor);
+                    tab.editors = _.without(tab.editors, ReleaseDateEditor, DueDateEditor);
                 });
             }
             return new SettingsXBlockModal($.extend({
